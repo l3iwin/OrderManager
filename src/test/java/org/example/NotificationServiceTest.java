@@ -1,3 +1,5 @@
+package org.example;
+
 import org.example.entity.Item;
 import org.example.entity.Order;
 import org.example.entity.User;

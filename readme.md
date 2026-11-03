@@ -163,7 +163,7 @@ Resposta Sucesso (200 OK): [{
 "quantityFulfilled": 4,
 "user": { "id": 1, "name": "Ana Silva", "email": "ana.silva@example.com" },
 "completed": true,
-"allocations": [
+"allocations": [mvn
 {
 "id": 1,
 "quantityAllocated": 4
