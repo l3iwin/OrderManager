@@ -29,7 +29,7 @@ public class StockMovement {
     private List<OrderAllocation> allocations = new ArrayList<>();
 
     @Version
-    private Long version; // Proteção contra concorrência (Optimistic Locking)
+    private Long version;
 
     public StockMovement() {
         this.creationDate = LocalDateTime.now();
