@@ -50,7 +50,7 @@ public class OrderService {
 
     @Transactional
     public void fulfillOrderWithAvailableStock(Order order) {
-        List<StockMovement> movements = stockMovementRepository.findAvailableByItemId(order.getItem().getId());
+        List<StockMovement> movements = stockMovementRepository.findAvailableByItemIdWithLock(order.getItem().getId());
 
         for (StockMovement movement : movements) {
             if (order.isCompleted()) break;

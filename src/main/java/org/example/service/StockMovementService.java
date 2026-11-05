@@ -52,7 +52,7 @@ public class StockMovementService {
 
     @Transactional
     public void tryToAllocateStockToPendingOrders(StockMovement movement) {
-        List<Order> pendingOrders = orderRepository.findPendingByItemId(movement.getItem().getId());
+        List<Order> pendingOrders = orderRepository.findPendingByItemIdWithLock(movement.getItem().getId());
 
         for (Order order : pendingOrders) {
             if (movement.getQuantityAvailable() <= 0) break;
