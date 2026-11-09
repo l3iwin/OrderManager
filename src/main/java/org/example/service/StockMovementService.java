@@ -50,8 +50,7 @@ public class StockMovementService {
         return stockMovementRepository.save(movement);
     }
 
-    @Transactional
-    public void tryToAllocateStockToPendingOrders(StockMovement movement) {
+    private void tryToAllocateStockToPendingOrders(StockMovement movement) {
         List<Order> pendingOrders = orderRepository.findPendingByItemIdWithLock(movement.getItem().getId());
 
         for (Order order : pendingOrders) {

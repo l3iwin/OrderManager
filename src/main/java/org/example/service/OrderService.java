@@ -48,8 +48,7 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    @Transactional
-    public void fulfillOrderWithAvailableStock(Order order) {
+    private void fulfillOrderWithAvailableStock(Order order) {
         List<StockMovement> movements = stockMovementRepository.findAvailableByItemIdWithLock(order.getItem().getId());
 
         for (StockMovement movement : movements) {
@@ -80,5 +79,13 @@ public class OrderService {
     public Order findById(Long id) { return orderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Encomenda não encontrada")); }
 
     @Transactional
-    public void deleteOrder(Long id) { orderRepository.deleteById(id); }
+    public void deleteOrder(Long id) {
+        Order order = findById(id);
+
+        if (order.getQuantityFulfilled() > 0 || !order.getAllocations().isEmpty()) {
+            throw new IllegalStateException("Não é possível eliminar uma encomenda que já possui stock alocado.");
+        }
+
+        orderRepository.delete(order);
+    }
 }
