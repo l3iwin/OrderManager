@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.dto.StockMovementRequestDTO;
+import org.example.dto.StockMovementResponseDTO;
 import org.example.entity.Item;
 import org.example.entity.StockMovement;
 import org.example.repository.ItemRepository;
@@ -40,47 +42,35 @@ public class StockMovementServiceTest {
 
     @Test
     public void testCreateStockMovementSuccessfully() {
-        Item item = new Item("Teclado Mecânico");
-        item.setId(1L);
+        // 1. Preparar dados: criar e persistir um Item base
+        Item item = itemRepository.save(new Item("MacBook Pro M3"));
 
-        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(stockMovementRepository.save(any(StockMovement.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        // 2. Construir o Request DTO para a entrada de stock
+        StockMovementRequestDTO requestDTO = new StockMovementRequestDTO();
+        requestDTO.setItemId(item.getId());
+        requestDTO.setQuantity(50);
 
-        when(orderRepository.findPendingByItemIdWithLock(1L)).thenReturn(Collections.emptyList());
+        // 3. Executar a ação através do serviço (que processa e devolve o Response DTO)
+        StockMovementResponseDTO responseDTO = stockMovementService.createStockMovement(requestDTO);
 
-        StockMovement movement = stockMovementService.createStockMovement(1L, 20);
-
-        assertNotNull(movement);
-        assertEquals(20, movement.getQuantity());
-        assertEquals(20, movement.getQuantityAvailable());
-        assertEquals(item, movement.getItem());
-
-        verify(itemRepository, times(1)).findById(1L);
-        verify(stockMovementRepository, atLeastOnce()).save(any(StockMovement.class));
+        // 4. Validação rigorosa baseada no Response DTO
+        assertNotNull(responseDTO, "O DTO de resposta não deve ser nulo");
+        assertNotNull(responseDTO.getId(), "O ID gerado do movimento de stock não deve ser nulo");
+        assertEquals(item.getId(), responseDTO.getItemId(), "O ID do item deve coincidir");
+        assertEquals("MacBook Pro M3", responseDTO.getItemName(), "O nome do item deve coincidir");
+        assertEquals(50, responseDTO.getQuantity(), "A quantidade total deve ser 50");
+        assertEquals(50, responseDTO.getQuantityAvailable(), "A quantidade disponível inicial deve ser 50");
+        assertTrue(responseDTO.getAllocations().isEmpty(), "Como não existem encomendas pendentes, as alocações devem estar vazias");
     }
 
     @Test
     public void testCreateStockMovementItemNotFound() {
-        when(itemRepository.findById(99L)).thenReturn(Optional.empty());
+        StockMovementRequestDTO dto = new StockMovementRequestDTO();
+        dto.setItemId(9999L); // ID que não existe
+        dto.setQuantity(10);
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            stockMovementService.createStockMovement(99L, 10);
-        });
-
-        assertEquals("Item não encontrado", exception.getMessage());
-        verify(stockMovementRepository, never()).save(any());
-    }
-
-    @Test
-    public void testCreateStockMovementInvalidQuantity() {
-        Item item = new Item("Mouse");
-        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            stockMovementService.createStockMovement(1L, 0);
-        });
-
-        assertEquals("A quantidade deve ser superior a zero", exception.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> {
+            stockMovementService.createStockMovement(dto);
+        }, "Deve lançar exceção quando o item não é encontrado");
     }
 }

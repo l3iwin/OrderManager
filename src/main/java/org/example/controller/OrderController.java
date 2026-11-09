@@ -1,6 +1,8 @@
 package org.example.controller;
 
 import org.example.dto.OrderRequestDTO;
+import org.example.dto.OrderResponseDTO;
+import org.example.dto.OrderUpdateDTO;
 import org.example.entity.Order;
 import org.example.service.OrderService;
 import org.springframework.http.ResponseEntity;
@@ -14,42 +16,44 @@ import java.util.List;
 public class OrderController {
     private final OrderService orderService;
 
-    public OrderService getOrderService() {
-        return orderService;
-    }
-
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
     }
 
     @PostMapping
-    public ResponseEntity<Order> create(@Valid @RequestBody OrderRequestDTO dto) {
-        Order order = orderService.createOrder(dto.getItemId(), dto.getQuantity(), dto.getUserId());
-        return ResponseEntity.ok(order);
+    public ResponseEntity<OrderResponseDTO> create(@Valid @RequestBody OrderRequestDTO dto) {
+        OrderResponseDTO createdOrder = orderService.createOrder(dto.getItemId(), dto.getQuantity(), dto.getUserId());
+        return ResponseEntity.ok(createdOrder);
     }
 
     @GetMapping
-    public List<Order> listAll() {
+    public List<OrderResponseDTO> listAll() {
         return orderService.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getById(@PathVariable Long id) {
+    public ResponseEntity<OrderResponseDTO> getById(@PathVariable Long id) {
+        return orderService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<OrderResponseDTO> update(@PathVariable Long id, @Valid @RequestBody OrderUpdateDTO dto) {
         try {
-            Order order = orderService.findById(id);
-            return ResponseEntity.ok(order);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
+            OrderResponseDTO updatedOrder = orderService.updateOrder(id, dto);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(null);
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        try {
-            orderService.deleteOrder(id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
+        boolean deleted = orderService.deleteOrder(id);
+        if (!deleted) {
             return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.noContent().build();
     }
 }

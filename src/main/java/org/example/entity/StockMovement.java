@@ -42,11 +42,59 @@ public class StockMovement {
         this.quantityAvailable = quantity;
     }
 
-    public Long getId() { return id; }
-    public LocalDateTime getCreationDate() { return creationDate; }
-    public Item getItem() { return item; }
-    public int getQuantity() { return quantity; }
-    public int getQuantityAvailable() { return quantityAvailable; }
-    public void setQuantityAvailable(int quantityAvailable) { this.quantityAvailable = quantityAvailable; }
-    public List<OrderAllocation> getAllocations() { return allocations; }
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public Item getItem() {
+        return item;
+    }
+
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public int getQuantityAvailable() {
+        return quantityAvailable;
+    }
+
+    public void setQuantityAvailable(int quantityAvailable) {
+        this.quantityAvailable = quantityAvailable;
+    }
+
+    public List<OrderAllocation> getAllocations() {
+        return allocations;
+    }
+
+    public void setAllocations(List<OrderAllocation> allocations) {
+        this.allocations = allocations;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
 }

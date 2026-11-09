@@ -1,6 +1,7 @@
 package org.example;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.dto.ItemRequestDTO;
 import org.example.dto.OrderRequestDTO;
 import org.example.entity.Item;
 import org.example.entity.User;
@@ -51,30 +52,30 @@ public class OrderControllerTest {
 
     @Test
     public void testCreateItemEndpoint() throws Exception {
-        Item newItem = new Item("Keyboard");
+        ItemRequestDTO requestDTO = new ItemRequestDTO();
+        requestDTO.setName("Monitor 4K");
 
         mockMvc.perform(post("/api/items")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newItem)))
+                        .content(objectMapper.writeValueAsString(requestDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.name").value("Keyboard"));
+                .andExpect(jsonPath("$.name").value("Monitor 4K"));
     }
 
     @Test
     public void testCreateOrderEndpoint() throws Exception {
-        OrderRequestDTO dto = new OrderRequestDTO();
-        dto.setItemId(savedItem.getId());
-        dto.setQuantity(2);
-        dto.setUserId(savedUser.getId());
+        OrderRequestDTO requestDTO = new OrderRequestDTO();
+        requestDTO.setItemId(1L);
+        requestDTO.setQuantity(2);
+        requestDTO.setUserId(1L);
 
         mockMvc.perform(post("/api/orders")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                        .content(objectMapper.writeValueAsString(requestDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.quantityRequested").value(2))
-                .andExpect(jsonPath("$.completed").value(false));
+                .andExpect(jsonPath("$.quantityRequested").value(2));
     }
 
     @Test

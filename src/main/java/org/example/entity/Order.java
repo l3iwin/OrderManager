@@ -56,14 +56,75 @@ public class Order {
         return ((double) quantityFulfilled / quantityRequested) * 100.0;
     }
 
-    public Long getId() { return id; }
-    public LocalDateTime getCreationDate() { return creationDate; }
-    public Item getItem() { return item; }
-    public int getQuantityRequested() { return quantityRequested; }
-    public int getQuantityFulfilled() { return quantityFulfilled; }
-    public void setQuantityFulfilled(int quantityFulfilled) { this.quantityFulfilled = quantityFulfilled; }
-    public User getUser() { return user; }
-    public boolean isCompleted() { return completed; }
-    public void setCompleted(boolean completed) { this.completed = completed; }
-    public List<OrderAllocation> getAllocations() { return allocations; }
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public Item getItem() {
+        return item;
+    }
+
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    public int getQuantityRequested() {
+        return quantityRequested;
+    }
+
+    public void setQuantityRequested(int quantityRequested) {
+        this.quantityRequested = quantityRequested;
+    }
+
+    public int getQuantityFulfilled() {
+        return quantityFulfilled;
+    }
+
+    public void setQuantityFulfilled(int quantityFulfilled) {
+        this.quantityFulfilled = quantityFulfilled;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+
+    public List<OrderAllocation> getAllocations() {
+        return allocations;
+    }
+
+    public void setAllocations(List<OrderAllocation> allocations) {
+        this.allocations = allocations;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
 }

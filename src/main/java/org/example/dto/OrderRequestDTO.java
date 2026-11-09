@@ -4,14 +4,17 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 public class OrderRequestDTO {
-    @NotNull()
     private Long itemId;
-
-    @Min(value = 1)
     private int quantity;
-
-    @NotNull()
     private Long userId;
+
+    public OrderRequestDTO() {}
+
+    public OrderRequestDTO(Long itemId, int quantity, Long userId) {
+        this.itemId = itemId;
+        this.quantity = quantity;
+        this.userId = userId;
+    }
 
     public Long getItemId() { return itemId; }
     public void setItemId(Long itemId) { this.itemId = itemId; }

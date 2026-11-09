@@ -24,12 +24,12 @@ public class NotificationServiceTest {
 
     @Test
     public void testSendOrderCompletedEmailDoesNotThrowException() {
-        Item item = new Item("Monitor 4K");
-        User user = new User("Maria Silva", "maria@example.com");
-        Order order = new Order(item, 2, user);
+        User user = new User("Ana Silva", "ana.silva@example.com");
+        Item item = new Item("Laptop Pro");
+        Order order = new Order(item, 5, user);
 
         assertDoesNotThrow(() -> {
             notificationService.sendOrderCompletedEmail(order);
-        });
+        }, "O envio assíncrono de email nunca deve propagar exceções para o chamador");
     }
 }

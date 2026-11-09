@@ -7,6 +7,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 public class NotificationService {
@@ -15,6 +17,19 @@ public class NotificationService {
 
     public NotificationService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
+    }
+
+    public void triggerEmailAfterCommit(Order order) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+                @Override
+                public void afterCommit() {
+                    sendOrderCompletedEmail(order);
+                }
+            });
+        } else {
+            sendOrderCompletedEmail(order);
+        }
     }
 
     @Async

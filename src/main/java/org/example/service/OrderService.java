@@ -1,5 +1,8 @@
 package org.example.service;
 
+import org.example.dto.AllocationResponseDTO;
+import org.example.dto.OrderResponseDTO;
+import org.example.dto.OrderUpdateDTO;
 import org.example.entity.*;
 import org.example.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -18,7 +23,6 @@ public class OrderService {
     private final OrderAllocationRepository allocationRepository;
     private final NotificationService notificationService;
 
-    @Autowired
     public OrderService(OrderRepository orderRepository, ItemRepository itemRepository,
                         UserRepository userRepository, StockMovementRepository stockMovementRepository,
                         OrderAllocationRepository allocationRepository, NotificationService notificationService) {
@@ -30,12 +34,38 @@ public class OrderService {
         this.notificationService = notificationService;
     }
 
+    public OrderResponseDTO toResponseDTO(Order order) {
+        List<AllocationResponseDTO> allocationDTOs = order.getAllocations().stream()
+                .map(a -> new AllocationResponseDTO(a.getStockMovement().getId(), a.getQuantityAllocated()))
+                .collect(Collectors.toList());
+
+        double percentage = order.getQuantityRequested() > 0
+                ? ((double) order.getQuantityFulfilled() / order.getQuantityRequested()) * 100.0
+                : 0.0;
+
+        return new OrderResponseDTO(
+                order.getId(),
+                order.getCreationDate(),
+                order.getItem().getId(),
+                order.getItem().getName(),
+                order.getUser().getId(),
+                order.getUser().getName(),
+                order.getQuantityRequested(),
+                order.getQuantityFulfilled(),
+                order.isCompleted(),
+                percentage,
+                allocationDTOs
+        );
+    }
+
     @Transactional
-    public Order createOrder(Long itemId, int quantity, Long userId) {
+    public OrderResponseDTO createOrder(Long itemId, int quantity, Long userId) {
+        // 1. Bloqueia o Item em exclusivo (Pessimistic Lock no Agregador)
         Item item = itemRepository.findByIdWithLock(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
+                .orElseThrow(() -> new IllegalArgumentException("Item não encontrado com o ID: " + itemId));
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilizador não encontrado"));
+                .orElseThrow(() -> new IllegalArgumentException("Utilizador não encontrado com o ID: " + userId));
 
         if (quantity <= 0) {
             throw new IllegalArgumentException("A quantidade deve ser superior a zero");
@@ -45,47 +75,71 @@ public class OrderService {
         order = orderRepository.save(order);
 
         fulfillOrderWithAvailableStock(order);
-        return orderRepository.save(order);
+        order = orderRepository.save(order);
+
+        return toResponseDTO(order);
     }
 
     private void fulfillOrderWithAvailableStock(Order order) {
-        List<StockMovement> movements = stockMovementRepository.findAvailableByItemIdWithLock(order.getItem().getId());
+        List<StockMovement> availableMovements = stockMovementRepository.findAvailableByItemIdWithLock(order.getItem().getId());
 
-        for (StockMovement movement : movements) {
-            if (order.isCompleted()) break;
+        for (StockMovement movement : availableMovements) {
+            if (order.getQuantityFulfilled() >= order.getQuantityRequested()) break;
 
             int needed = order.getQuantityRequested() - order.getQuantityFulfilled();
             int availableInStock = movement.getQuantityAvailable();
 
-            if (availableInStock > 0 && needed > 0) {
-                int toAllocate = Math.min(needed, availableInStock);
+            int toAllocate = Math.min(needed, availableInStock);
 
-                movement.setQuantityAvailable(availableInStock - toAllocate);
-                order.setQuantityFulfilled(order.getQuantityFulfilled() + toAllocate);
+            movement.setQuantityAvailable(availableInStock - toAllocate);
+            order.setQuantityFulfilled(order.getQuantityFulfilled() + toAllocate);
 
-                OrderAllocation allocation = new OrderAllocation(order, movement, toAllocate);
-                allocationRepository.save(allocation);
-                stockMovementRepository.save(movement);
+            OrderAllocation allocation = new OrderAllocation(order, movement, toAllocate);
+            allocationRepository.save(allocation);
+            stockMovementRepository.save(movement);
 
-                if (order.getQuantityFulfilled() >= order.getQuantityRequested()) {
-                    order.setCompleted(true);
-                    notificationService.sendOrderCompletedEmail(order);
-                }
+            if (order.getQuantityFulfilled() >= order.getQuantityRequested()) {
+                order.setCompleted(true);
+                orderRepository.save(order);
+                notificationService.triggerEmailAfterCommit(order);
             }
         }
     }
 
-    public List<Order> findAll() { return orderRepository.findAll(); }
-    public Order findById(Long id) { return orderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Encomenda não encontrada")); }
+    public List<OrderResponseDTO> findAll() {
+        return orderRepository.findAll().stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public Optional<OrderResponseDTO> findById(Long id) {
+        return orderRepository.findById(id).map(this::toResponseDTO);
+    }
 
     @Transactional
-    public void deleteOrder(Long id) {
-        Order order = findById(id);
+    public OrderResponseDTO updateOrder(Long id, OrderUpdateDTO dto) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Encomenda não encontrada com o ID: " + id));
 
-        if (order.getQuantityFulfilled() > 0 || !order.getAllocations().isEmpty()) {
-            throw new IllegalStateException("Não é possível eliminar uma encomenda que já possui stock alocado.");
+        if (order.isCompleted() || order.getQuantityFulfilled() > 0) {
+            throw new IllegalStateException("Não é possível alterar uma encomenda que já possui alocações ou está concluída.");
         }
 
-        orderRepository.delete(order);
+        order.setQuantityRequested(dto.getQuantityRequested());
+        order = orderRepository.save(order);
+
+        fulfillOrderWithAvailableStock(order);
+        order = orderRepository.save(order);
+
+        return toResponseDTO(order);
+    }
+
+    @Transactional
+    public boolean deleteOrder(Long id) {
+        if (!orderRepository.existsById(id)) {
+            return false;
+        }
+        orderRepository.deleteById(id);
+        return true;
     }
 }

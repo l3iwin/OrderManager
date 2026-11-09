@@ -4,10 +4,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 public class StockMovementRequestDTO {
-    @NotNull()
     private Long itemId;
-
-    @Min(value = 1)
     private int quantity;
 
     public Long getItemId() { return itemId; }
