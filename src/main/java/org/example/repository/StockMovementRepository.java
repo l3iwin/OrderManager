@@ -13,6 +13,6 @@ import java.util.List;
 @Repository
 public interface StockMovementRepository extends JpaRepository<StockMovement, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT sm FROM StockMovement sm WHERE sm.item.id = :itemId AND sm.quantityAvailable > 0 ORDER BY sm.creationDate ASC")
+    @Query("SELECT sm FROM StockMovement sm WHERE sm.item.id = :itemId AND sm.quantityAvailable > 0 ORDER BY sm.creationDate ASC, sm.id ASC")
     List<StockMovement> findAvailableByItemIdWithLock(@Param("itemId") Long itemId);
 }

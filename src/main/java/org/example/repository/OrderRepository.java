@@ -13,6 +13,6 @@ import java.util.List;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT o FROM Order o WHERE o.item.id = :itemId AND o.completed = false ORDER BY o.creationDate ASC")
+    @Query("SELECT o FROM Order o WHERE o.item.id = :itemId AND o.completed = false ORDER BY o.creationDate ASC, o.id ASC")
     List<Order> findPendingByItemIdWithLock(@Param("itemId") Long itemId);
 }
