@@ -28,146 +28,157 @@ _mvn test_
 
 #### 1. Criar um Item
 
-POST /api/items
+curl -X POST http://localhost:8080/api/items \
+-H "Content-Type: application/json" \
+-d '{"name": "Laptop Pro"}
 
-Content-Type: application/json
+Response:
 
-Payload:{ "name": "Laptop Pro" }
-
-Resposta Sucesso (200 OK): [ { "id": 1, "name": "Laptop Pro" } ]
+{
+"id": 1,
+"name": "Laptop Pro"
+}
 
 #### 2. Listar Todos os Items
 
-GET /api/items
+curl -X GET http://localhost:8080/api/items
 
-Resposta Sucesso (200 OK): [ { "id": 1, "name": "Laptop Pro" } ]
+Response: [
+{
+"id": 1,
+"name": "Laptop Pro"
+}
+]
 
 ### Users (Utilizadores)
 
 #### 1. Criar um Utilizador
 
-POST /api/users
+curl -X POST http://localhost:8080/api/users \
+-H "Content-Type: application/json" \
+-d '{"name": "Ana Silva", "email": "ana@example.com"}'
 
-Content-Type: application/json
-
-Payload: [ {
-"name": "Ana Silva",
-"email": "ana.silva@example.com"
-} ]
-
-Resposta Sucesso (200 OK): [ {
+Response: {
 "id": 1,
 "name": "Ana Silva",
 "email": "ana.silva@example.com"
-} ]
+}
 
 #### 2. Listar Todos os Utilizadores
 
-GET /api/users
+curl -X GET http://localhost:8080/api/users
 
-Resposta Sucesso (200 OK): [ { "id": 1, "name": "Ana Silva", "email": "ana.silva@example.com" } ]
+Response: [
+{
+"id": 1,
+"name": "Ana Silva",
+"email": "ana.silva@example.com"
+}
+]
 
 ### Stock Movements
 
 #### 1. Criar Entrada de Stock
 
-POST /api/stock-movements
+curl -X POST http://localhost:8080/api/stock-movements \
+-H "Content-Type: application/json" \
+-d '{"itemId": 1, "quantity": 10}'
 
-Content-Type: application/json
-
-Payload: [ {
-"itemId": 1,
-"quantity": 10
-} ]
-
-Resposta Sucesso (200 OK): [ {
+Response: {
 "id": 1,
 "creationDate": "2026-06-06T12:00:00",
-"item": { "id": 1, "name": "Laptop Pro" },
+"item": {
+"id": 1,
+"name": "Laptop Pro"
+},
 "quantity": 10,
 "quantityAvailable": 10,
 "allocations": []
-} ]
+}
 
 #### 2. Listar Movimentos de Stock
 
-GET /api/stock-movements
+curl -X GET http://localhost:8080/api/stock-movements
 
-Resposta Sucesso (200 OK): [ {
+Response: [
+{
 "id": 1,
 "creationDate": "2026-06-06T12:00:00",
-"item": { "id": 1, "name": "Laptop Pro" },
+"item": {
+"id": 1,
+"name": "Laptop Pro"
+},
 "quantity": 10,
 "quantityAvailable": 10,
 "allocations": []
-} ]
+}
+]
 
 ### Orders
 
 #### 1. Criar Encomenda
-POST /api/orders
 
-Content-Type: application/json
+curl -X POST http://localhost:8080/api/orders \
+-H "Content-Type: application/json" \
+-d '{"itemId": 1, "quantity": 5, "userId": 1}'
 
-Payload: [{
-"itemId": 1,
-"quantity": 4,
-"userId": 1
-}] 
-
-Resposta Sucesso: [{
+Response: {
 "id": 1,
 "creationDate": "2026-06-06T12:05:00",
-"item": { "id": 1, "name": "Laptop Pro" },
-"quantityRequested": 4,
-"quantityFulfilled": 4,
-"user": { "id": 1, "name": "Ana Silva", "email": "ana.silva@example.com" },
+"itemId": 1,
+"itemName": "Laptop Pro",
+"quantityRequested": 5,
+"quantityFulfilled": 5,
 "completed": true,
+"completionPercentage": 100.0,
 "allocations": [
 {
-"id": 1,
-"quantityAllocated": 4
+"stockMovementId": 1,
+"quantityAllocated": 5
 }
-],
-"completionPercentage": 100.0
-}]
+]
+}
 
 #### 2. Listar Todas as Encomendas
-GET /api/orders
 
-Resposta Sucesso (200 OK): [{
+curl -X GET http://localhost:8080/api/orders
+
+Response: [
+{
 "id": 1,
 "creationDate": "2026-06-06T12:05:00",
-"item": { "id": 1, "name": "Laptop Pro" },
-"quantityRequested": 4,
-"quantityFulfilled": 4,
-"user": { "id": 1, "name": "Ana Silva", "email": "ana.silva@example.com" },
+"itemId": 1,
+"itemName": "Laptop Pro",
+"quantityRequested": 5,
+"quantityFulfilled": 5,
 "completed": true,
+"completionPercentage": 100.0,
 "allocations": [
 {
-"id": 1,
-"quantityAllocated": 4
+"stockMovementId": 1,
+"quantityAllocated": 5
 }
-],
-"completionPercentage": 100.0
-}]
+]
+}
+]
 
 #### 3. Consultar Encomenda por ID
-GET /api/orders/{id}
 
-Resposta Sucesso (200 OK): [{
+curl -X GET http://localhost:8080/api/orders/1
+
+Response: {
 "id": 1,
 "creationDate": "2026-06-06T12:05:00",
-"item": { "id": 1, "name": "Laptop Pro" },
-"quantityRequested": 4,
-"quantityFulfilled": 4,
-"user": { "id": 1, "name": "Ana Silva", "email": "ana.silva@example.com" },
+"itemId": 1,
+"itemName": "Laptop Pro",
+"quantityRequested": 5,
+"quantityFulfilled": 5,
 "completed": true,
-"allocations": [mvn
+"completionPercentage": 100.0,
+"allocations": [
 {
-"id": 1,
-"quantityAllocated": 4
+"stockMovementId": 1,
+"quantityAllocated": 5
 }
-],
-"completionPercentage": 100.0
-}]
+]
+}
