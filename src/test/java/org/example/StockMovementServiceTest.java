@@ -46,7 +46,8 @@ public class StockMovementServiceTest {
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
         when(stockMovementRepository.save(any(StockMovement.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(orderRepository.findPendingByItemId(1L)).thenReturn(Collections.emptyList());
+
+        when(orderRepository.findPendingByItemIdWithLock(1L)).thenReturn(Collections.emptyList());
 
         StockMovement movement = stockMovementService.createStockMovement(1L, 20);
 

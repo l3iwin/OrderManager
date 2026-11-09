@@ -36,7 +36,7 @@ public class StockMovementService {
 
     @Transactional
     public StockMovement createStockMovement(Long itemId, int quantity) {
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findByIdWithLock(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
 
         if (quantity <= 0) {

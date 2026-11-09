@@ -32,7 +32,7 @@ public class OrderService {
 
     @Transactional
     public Order createOrder(Long itemId, int quantity, Long userId) {
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findByIdWithLock(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Utilizador não encontrado"));
